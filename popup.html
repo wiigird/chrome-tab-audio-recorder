@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>탭 오디오 녹음기</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>탭 오디오 녹음기</h1>
+        <button id="refreshTabs" class="icon-button" type="button" title="탭 목록 새로고침">↻</button>
+      </header>
+
+      <label for="tabSelect">녹음할 탭</label>
+      <select id="tabSelect"></select>
+      <p id="tabHint">🔊 표시는 현재 소리가 재생 중인 탭입니다.</p>
+
+      <section class="status-card">
+        <div id="statusDot" class="status-dot idle"></div>
+        <div class="status-text">
+          <span id="statusLabel">대기 중</span>
+          <strong id="timer">00:00:00</strong>
+        </div>
+      </section>
+
+      <p id="recordingTab" class="recording-tab"></p>
+
+      <div class="controls">
+        <button id="startButton" class="primary" type="button">녹음 시작</button>
+        <button id="pauseButton" type="button" disabled>일시정지</button>
+        <button id="stopButton" class="danger" type="button" disabled>종료·저장</button>
+      </div>
+
+      <p id="message" role="status"></p>
+      <footer>저장 위치: 다운로드/ZEP_Recordings</footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
