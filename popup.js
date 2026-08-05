@@ -9,6 +9,20 @@ const timer = document.querySelector("#timer");
 const recordingTab = document.querySelector("#recordingTab");
 const message = document.querySelector("#message");
 
+function t(key, substitutions) {
+  return chrome.i18n.getMessage(key, substitutions) || key;
+}
+
+function localizeStaticText() {
+  document.documentElement.lang = chrome.i18n.getMessage("@@ui_locale") || "ko";
+  document.title = t("extName");
+  document.querySelector("#heading").textContent = t("popupTitle");
+  refreshTabsButton.title = t("refreshTabs");
+  document.querySelector("#tabSelectLabel").textContent = t("tabLabel");
+  document.querySelector("#tabHint").textContent = t("tabHint");
+  document.querySelector("#saveLocation").textContent = t("saveLocation");
+}
+
 let currentStatus = { state: "idle", elapsedMs: 0 };
 let pollingTimer = null;
 
@@ -22,7 +36,7 @@ function formatTime(milliseconds) {
 
 async function send(type, extra = {}) {
   const response = await chrome.runtime.sendMessage({ target: "service-worker", type, ...extra });
-  if (!response?.ok) throw new Error(response?.error || "요청을 처리하지 못했습니다.");
+  if (!response?.ok) throw new Error(response?.error || t("requestFailed"));
   return response;
 }
 
@@ -38,35 +52,35 @@ function renderStatus(status) {
   startButton.disabled = active || (!recoverable && !tabSelect.value);
   pauseButton.disabled = !["recording", "paused"].includes(state);
   stopButton.disabled = !["recording", "paused", "recoverable"].includes(state);
-  startButton.textContent = recoverable ? "복구 파일 저장" : "녹음 시작";
-  pauseButton.textContent = state === "paused" ? "녹음 재개" : "일시정지";
-  stopButton.textContent = recoverable ? "복구본 삭제" : "종료·저장";
+  startButton.textContent = recoverable ? t("recoverSave") : t("startRecording");
+  pauseButton.textContent = state === "paused" ? t("resumeRecording") : t("pauseRecording");
+  stopButton.textContent = recoverable ? t("discardRecovery") : t("stopAndSave");
   recordingTab.textContent = (active || recoverable) && currentStatus.tabTitle
-    ? `${recoverable ? "복구 대상" : "대상"}: ${currentStatus.tabTitle}`
+    ? `${recoverable ? t("recoveryTarget") : t("recordingTarget")}: ${currentStatus.tabTitle}`
     : "";
 
   statusDot.className = "status-dot";
   if (state === "recording") {
     statusDot.classList.add("recording");
-    statusLabel.textContent = "녹음 중";
+    statusLabel.textContent = t("statusRecording");
   } else if (state === "paused") {
     statusDot.classList.add("paused");
-    statusLabel.textContent = "일시정지";
+    statusLabel.textContent = t("statusPaused");
   } else if (state === "stopping") {
     statusDot.classList.add("paused");
-    statusLabel.textContent = "저장 중";
+    statusLabel.textContent = t("statusSaving");
   } else if (state === "recovering") {
     statusDot.classList.add("paused");
-    statusLabel.textContent = "복구 저장 중";
+    statusLabel.textContent = t("statusRecovering");
   } else if (state === "recoverable") {
     statusDot.classList.add("paused");
-    statusLabel.textContent = "복구 가능";
+    statusLabel.textContent = t("statusRecoverable");
   } else if (state === "starting") {
     statusDot.classList.add("paused");
-    statusLabel.textContent = "시작 중";
+    statusLabel.textContent = t("statusStarting");
   } else {
     statusDot.classList.add("idle");
-    statusLabel.textContent = "대기 중";
+    statusLabel.textContent = t("statusIdle");
   }
 }
 
@@ -76,7 +90,7 @@ async function loadTabs() {
   tabSelect.replaceChildren();
 
   if (!tabs.length) {
-    const option = new Option("녹음 가능한 탭이 없습니다", "");
+    const option = new Option(t("noCapturableTabs"), "");
     tabSelect.add(option);
     startButton.disabled = true;
     return;
@@ -122,7 +136,7 @@ startButton.addEventListener("click", () => perform(() => send(
 pauseButton.addEventListener("click", () => perform(() => send(currentStatus.state === "paused" ? "RESUME_RECORDING" : "PAUSE_RECORDING")));
 stopButton.addEventListener("click", () => {
   if (currentStatus.state === "recoverable") {
-    if (!confirm("복구 가능한 녹음 데이터를 완전히 삭제할까요?")) return;
+    if (!confirm(t("discardRecoveryConfirm"))) return;
     perform(() => send("DISCARD_RECOVERY"));
   } else {
     perform(() => send("STOP_RECORDING"));
@@ -130,6 +144,7 @@ stopButton.addEventListener("click", () => {
 });
 
 async function initialize() {
+  localizeStaticText();
   await Promise.all([loadTabs(), refreshStatus()]);
   pollingTimer = setInterval(refreshStatus, 1000);
 }
