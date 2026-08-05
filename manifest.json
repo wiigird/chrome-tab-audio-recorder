@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chrome 탭 오디오 녹음기",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "선택한 Chrome 탭의 소리만 녹음하고 비정상 종료 후에도 로컬 복구할 수 있습니다.",
   "minimum_chrome_version": "116",
   "permissions": [

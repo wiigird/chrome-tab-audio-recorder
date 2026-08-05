@@ -1,5 +1,6 @@
 const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
 const DEFAULT_TITLE = "탭 오디오 녹음기";
+const PROJECT_URL = "https://github.com/wiigird/chrome-tab-audio-recorder";
 let creatingOffscreenDocument = null;
 
 async function hasOffscreenDocument() {
@@ -198,4 +199,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return false;
 });
 
-chrome.runtime.onInstalled.addListener(() => setBadge("", null, DEFAULT_TITLE));
+chrome.runtime.onInstalled.addListener((details) => {
+  setBadge("", null, DEFAULT_TITLE);
+
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: PROJECT_URL });
+  }
+});
