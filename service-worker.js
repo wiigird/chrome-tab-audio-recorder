@@ -177,9 +177,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       try {
         const downloadId = await chrome.downloads.download({
           url: message.url,
-          filename: `ZEP_Recordings/${message.filename}`,
+          filename: message.chooseLocation ? message.filename : `ZEP_Recordings/${message.filename}`,
           conflictAction: "uniquify",
-          saveAs: false
+          saveAs: Boolean(message.chooseLocation)
         });
         await waitForDownloadCompletion(downloadId);
         await setBadge("", null, DEFAULT_TITLE);

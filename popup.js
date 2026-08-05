@@ -8,6 +8,8 @@ const statusLabel = document.querySelector("#statusLabel");
 const timer = document.querySelector("#timer");
 const recordingTab = document.querySelector("#recordingTab");
 const message = document.querySelector("#message");
+const fileNameInput = document.querySelector("#fileName");
+const chooseLocationInput = document.querySelector("#chooseLocation");
 
 function t(key, substitutions) {
   return chrome.i18n.getMessage(key, substitutions) || key;
@@ -20,6 +22,9 @@ function localizeStaticText() {
   refreshTabsButton.title = t("refreshTabs");
   document.querySelector("#tabSelectLabel").textContent = t("tabLabel");
   document.querySelector("#tabHint").textContent = t("tabHint");
+  document.querySelector("#fileNameLabel").textContent = t("fileNameLabel");
+  fileNameInput.placeholder = t("fileNamePlaceholder");
+  document.querySelector("#chooseLocationLabel").textContent = t("chooseLocation");
   document.querySelector("#saveLocation").textContent = t("saveLocation");
 }
 
@@ -49,6 +54,8 @@ function renderStatus(status) {
   timer.textContent = formatTime(currentStatus.elapsedMs || 0);
   tabSelect.disabled = active || recoverable;
   refreshTabsButton.disabled = active || recoverable;
+  fileNameInput.disabled = active || recoverable;
+  chooseLocationInput.disabled = active || recoverable;
   startButton.disabled = active || (!recoverable && !tabSelect.value);
   pauseButton.disabled = !["recording", "paused"].includes(state);
   stopButton.disabled = !["recording", "paused", "recoverable"].includes(state);
@@ -131,7 +138,11 @@ refreshTabsButton.addEventListener("click", () => perform(loadTabs));
 tabSelect.addEventListener("change", () => renderStatus(currentStatus));
 startButton.addEventListener("click", () => perform(() => send(
   currentStatus.state === "recoverable" ? "RECOVER_RECORDING" : "START_RECORDING",
-  { tabId: tabSelect.value }
+  {
+    tabId: tabSelect.value,
+    requestedFilename: fileNameInput.value.trim(),
+    chooseLocation: chooseLocationInput.checked
+  }
 )));
 pauseButton.addEventListener("click", () => perform(() => send(currentStatus.state === "paused" ? "RESUME_RECORDING" : "PAUSE_RECORDING")));
 stopButton.addEventListener("click", () => {

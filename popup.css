@@ -24,7 +24,8 @@ header {
 h1 { margin: 0; font-size: 18px; }
 label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 700; }
 
-select {
+select,
+input[type="text"] {
   width: 100%;
   padding: 9px 10px;
   border: 1px solid #dadce0;
@@ -32,6 +33,20 @@ select {
   background: white;
   font-size: 13px;
 }
+
+#fileName { margin-bottom: 8px; }
+
+.save-as-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 4px;
+  color: #3c4043;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.save-as-option input { margin: 0; }
 
 #tabHint, footer {
   color: #5f6368;
@@ -101,6 +116,7 @@ select {
 .controls button.primary { border-color: #1a73e8; color: white; background: #1a73e8; }
 .controls button.danger { border-color: #d93025; color: #d93025; }
 .controls button:disabled { cursor: default; opacity: .45; }
+input:disabled { opacity: .55; }
 
 #message {
   min-height: 18px;

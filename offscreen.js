@@ -247,16 +247,26 @@ async function reportError(error) {
   } catch {}
 }
 
-async function downloadBlob(blob, title, createdAt) {
+function createFilename(title, createdAt, requestedFilename) {
+  const extension = "webm";
+  const requested = sanitizeFilename(requestedFilename || "");
+  if (requested && requested !== "Chrome 탭") {
+    return requested.toLowerCase().endsWith(`.${extension}`) ? requested : `${requested}.${extension}`;
+  }
+  return `${timestampForFilename(new Date(createdAt))}_${sanitizeFilename(title)}.${extension}`;
+}
+
+async function downloadBlob(blob, title, createdAt, requestedFilename, chooseLocation) {
   const extension = blob.type.includes("webm") ? "webm" : "audio";
-  const filename = `${timestampForFilename(new Date(createdAt))}_${sanitizeFilename(title)}.${extension}`;
+  const filename = createFilename(title, createdAt, requestedFilename || "").replace(/\.webm$/i, `.${extension}`);
   const objectUrl = URL.createObjectURL(blob);
   try {
     const result = await chrome.runtime.sendMessage({
       target: "service-worker-event",
       type: "DOWNLOAD_RECORDING",
       url: objectUrl,
-      filename
+      filename,
+      chooseLocation: Boolean(chooseLocation)
     });
     if (!result?.ok) throw new Error(result?.error || "다운로드를 시작하지 못했습니다.");
   } finally {
@@ -269,7 +279,7 @@ async function assembleAndDownload(session) {
   if (!records.length) throw new Error("복구할 오디오 조각이 없습니다.");
   const blob = new Blob(records.map((record) => record.blob), { type: session.mimeType || "audio/webm" });
   if (!blob.size) throw new Error("녹음된 오디오 데이터가 없습니다.");
-  await downloadBlob(blob, session.tabTitle, session.createdAt);
+  await downloadBlob(blob, session.tabTitle, session.createdAt, session.requestedFilename, session.chooseLocation);
   await deleteSessionData(session.id);
 }
 
@@ -334,7 +344,9 @@ async function startRecording(message) {
       startedAt: recordingStartedAt,
       updatedAt: recordingStartedAt,
       totalPausedMs: 0,
-      elapsedMs: 0
+      elapsedMs: 0,
+      requestedFilename: message.requestedFilename || "",
+      chooseLocation: Boolean(message.chooseLocation)
     });
 
     mediaRecorder.addEventListener("dataavailable", (event) => {
